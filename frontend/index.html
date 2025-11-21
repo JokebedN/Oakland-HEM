@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oakland HEM - MVP Test</title>
+
+    <!-- Load Leaflet CSS FIRST (critical) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <!-- Load Tailwind CSS AFTER Leaflet -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+        }
+
+        /* Map container */
+        #map { 
+            height: 500px; 
+            width: 100%; 
+            margin-top: 30px;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen p-4">
+
+    <div class="w-full max-w-lg mx-auto bg-white p-6 rounded-xl shadow-2xl space-y-6">
+        <h1 class="text-3xl font-bold text-gray-800 border-b pb-2">Oakland HEM - Live Test</h1>
+
+        <!-- Button to trigger the API call -->
+        <button id="fetch-data-btn"
+            class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition duration-150"
+            onclick="fetchData()">
+            Test Flask API Connection
+        </button>
+
+        <!-- Display Area -->
+        <div class="space-y-3 pt-4 border-t mt-4">
+            <h2 class="text-xl font-semibold text-gray-700">API Response:</h2>
+            <div id="status-message" class="p-3 text-sm rounded-lg bg-gray-100 text-gray-600 min-h-[40px] flex items-center">
+                Click the button above to start the connection test.
+            </div>
+        </div>
+    </div>
+
+    <!-- MAP TITLE -->
+    <h2 class="text-2xl font-bold text-gray-800 mt-10 text-center">Oakland Bias Map</h2>
+
+    <!-- MAP CONTAINER -->
+    <div id="map" class="w-full max-w-4xl mx-auto"></div>
+
+    <!-- Load Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <script>
+        const API_BASE_URL = "http://127.0.0.1:5001";
+
+        const statusMessage = document.getElementById('status-message');
+        const fetchDataBtn = document.getElementById('fetch-data-btn');
+
+        function showStatus(message, type = 'info') {
+            statusMessage.textContent = message;
+            statusMessage.className = 'p-3 text-sm rounded-lg min-h-[40px] flex items-center';
+
+            if (type === 'success') {
+                statusMessage.classList.add('bg-green-100', 'text-green-700');
+            } else if (type === 'error') {
+                statusMessage.classList.add('bg-red-100', 'text-red-700');
+            } else {
+                statusMessage.classList.add('bg-gray-100', 'text-gray-600');
+            }
+        }
+
+        async function fetchData() {
+            showStatus("Connecting to Flask API...");
+            fetchDataBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/data`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                showStatus(
+                    `SUCCESS! Data received: "${data.data_point}" (Timestamp: ${data.timestamp})`,
+                    'success'
+                );
+
+            } catch (error) {
+                console.error('Fetch error:', error);
+                showStatus(
+                    `ERROR: Could not connect to backend (is Flask running on port 5001?). Details: ${error.message}`,
+                    'error'
+                );
+
+            } finally {
+                fetchDataBtn.disabled = false;
+            }
+        }
+
+        /* -----------------------------------------
+           Leaflet Map
+        ----------------------------------------- */
+        const map = L.map('map').setView([37.80, -122.25], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        fetch(`${API_BASE_URL}/api/map-data`)
+            .then(res => res.json())
+            .then(data => {
+                L.geoJSON(data, {
+                    style: feature => ({
+                        color: feature.properties.bias_score > 60 ? "red" : "blue",
+                        weight: 2,
+                        fillOpacity: 0.5
+                    }),
+                    onEachFeature: (feature, layer) => {
+                        layer.bindPopup(
+                            `<strong>${feature.properties.name}</strong><br>
+                             Bias Score: ${feature.properties.bias_score}`
+                        );
+                    }
+                }).addTo(map);
+            })
+            .catch(err => console.error("MAP ERROR:", err));
+    </script>
+
+</body>
+</html>

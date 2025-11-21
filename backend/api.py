@@ -2,12 +2,24 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
+import json   # <-- Needed to load GeoJSON
 
-# Load environment variables (currently unused but good practice)
+# Load environment variables 
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS so frontend can connect
+CORS(app)  # Enable CORS(Cross-Origin Resource Sharing) so frontend can connect
+
+# This loads backend/oakland_scores.geojson 
+# and stores it in the variable map_data
+try:
+    with open("oakland_scores.geojson") as f:
+        map_data = json.load(f)
+except Exception as e:
+    print("ERROR loading GeoJSON:", e)
+    map_data = {}   # fallback if file is missing
+# -------------------------------------------------------
+
 
 # Basic health check endpoint
 @app.route('/api/health', methods=['GET'])
@@ -18,15 +30,23 @@ def health_check():
         "version": "1.0"
     }), 200
 
-# Simple endpoint for data
+
+# Simple test endpoint for the MVP
 @app.route('/api/data', methods=['GET'])
 def get_data():
     return jsonify({
         "data_point": "Hello from Flask Backend",
-        "timestamp": os.getenv("FLASK_RUN_HOST", "localhost") 
+        "timestamp": os.getenv("FLASK_RUN_HOST", "localhost")
     }), 200
 
+
+# NEW: MAP DATA ENDPOINT (sends GeoJSON to the frontend)
+@app.route('/api/map-data', methods=['GET'])
+def map_data_endpoint():
+    return jsonify(map_data), 200
+
+
+# Run the Flask app
 if __name__ == '__main__':
-    # Run on port 5001
     app.run(host='0.0.0.0', port=5001, debug=True)
 

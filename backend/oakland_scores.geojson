@@ -1,0 +1,43 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Neighborhood A",
+        "bias_score": 72 
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-122.2500, 37.8000],
+            [-122.2400, 37.8000],
+            [-122.2400, 37.7900],
+            [-122.2500, 37.7900],
+            [-122.2500, 37.8000]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Neighborhood B",
+        "bias_score": 45
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-122.2600, 37.8100],
+            [-122.2500, 37.8100],
+            [-122.2500, 37.8000],
+            [-122.2600, 37.8000],
+            [-122.2600, 37.8100]
+          ]
+        ]
+      }
+    }
+  ]
+}
