@@ -13,7 +13,7 @@ CORS(app)  # Enable CORS(Cross-Origin Resource Sharing) so frontend can connect
 # This loads backend/oakland_scores.geojson 
 # and stores it in the variable map_data
 try:
-    with open("oakland_scores.geojson") as f:
+    with open("backend/oakland_scores.geojson") as f:
         map_data = json.load(f)
 except Exception as e:
     print("ERROR loading GeoJSON:", e)
